@@ -11,21 +11,36 @@ const btn = document.querySelector('[type="submit"]');
 
 form.addEventListener('submit', onSearch);
 
-function onSearch(event) {
+async function onSearch(event) {
   event.preventDefault();
-  const form = event.currentTarget;
-  const searchQuery = form.elements.searchQuery.value.trim();
+  const input = event.currentTarget;
+  const searchQuery = input.elements.searchQuery.value.trim();
   if (searchQuery === '') {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
     return;
   }
-  fetchAll(searchQuery).then(function (data) {
-    console.log(data.hits);
-    renderGallery(data.hits);
-    new SimpleLightbox('.gallery a');
-  });
+  const data = await fetchAll(searchQuery)
+    .then(response => {
+      if (response.data.total === 0) {
+        Notiflix.Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+      }
+      return response.data;
+    })
+    .then(data => {
+      Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`, {
+        timeout: 2000,
+      });
+      renderGallery(data.hits);
+      new SimpleLightbox('.gallery a');
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  form.reset();
 }
 
 function renderGallery(elements) {
