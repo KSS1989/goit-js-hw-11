@@ -9,6 +9,9 @@ img {
   width: 320px;
   height: 210px;
 }
+.scroll-container {
+  height: 100%;
+}
 
 .example{
   display: flex;
@@ -59,7 +62,13 @@ img {
   justify-content: space-around
 }
 .info-item{
+  display: flex;
   text-align: center;
+  flex-direction: column
+
+}
+.span{
+  margin-top: 5px;
 }
 
 .photo-card{
