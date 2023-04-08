@@ -1,46 +1,64 @@
-import { fetchAll } from './partials/fetch';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import { NewsApiService } from './partials/fetch';
+// import imgCard from './partials/img-card.hbs';
 
 const example = document.getElementById('uk');
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
 const input = document.querySelector('[type="text"]');
 const btn = document.querySelector('[type="submit"]');
+const lodeBtn = document.querySelector('.load-more');
+
+const newsApiService = new NewsApiService();
+
+lodeBtn.className = 'visually-hidden';
 
 form.addEventListener('submit', onSearch);
+lodeBtn.addEventListener('click', lodeMore);
 
-async function onSearch(event) {
-  event.preventDefault();
-  const input = event.currentTarget;
-  const searchQuery = input.elements.searchQuery.value.trim();
-  if (searchQuery === '') {
+lodeBtn;
+async function onSearch(e) {
+  e.preventDefault();
+  const input = e.currentTarget;
+  newsApiService.query = input.elements.searchQuery.value.trim();
+  if (newsApiService.searchQuery === '') {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
     return;
   }
-  const data = await fetchAll(searchQuery)
-    .then(response => {
-      if (response.data.total === 0) {
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-      }
-      return response.data;
-    })
+  const data = await newsApiService
+    .fetchAll()
     .then(data => {
       Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`, {
         timeout: 2000,
       });
+      newsApiService.resetPage();
+      newsApiService.incrementPage();
+      resetGallery();
       renderGallery(data.hits);
       new SimpleLightbox('.gallery a');
+      lodeBtn.className = 'load-more';
     })
     .catch(error => {
       console.log(error);
     });
   form.reset();
+}
+
+function lodeMore() {
+  newsApiService
+    .fetchAll()
+    .then(data => {
+      renderGallery(data.hits);
+      new SimpleLightbox('.gallery a').refresh();
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  newsApiService.incrementPage();
 }
 
 function renderGallery(elements) {
@@ -68,4 +86,7 @@ function renderGallery(elements) {
     })
     .join('');
   gallery.insertAdjacentHTML('beforeend', markup);
+}
+function resetGallery() {
+  gallery.innerHTML = '';
 }
