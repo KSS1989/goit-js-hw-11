@@ -4,21 +4,11 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import { NewsApiService } from './partials/fetch';
 import throttle from 'lodash.throttle';
 
-// import imgCard from './partials/img-card.hbs';
-
-const example = document.getElementById('uk');
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
-const input = document.querySelector('[type="text"]');
-const btn = document.querySelector('[type="submit"]');
-const lodeBtn = document.querySelector('.load-more');
-
 const newsApiService = new NewsApiService();
 
-// lodeBtn.className = 'visually-hidden';
-
 form.addEventListener('submit', onSearch);
-// lodeBtn.addEventListener('click', lodeMore);
 window.addEventListener(
   'scroll',
   throttle(e => {
@@ -34,7 +24,6 @@ window.addEventListener(
 
 async function onSearch(e) {
   e.preventDefault();
-
   newsApiService.query = e.currentTarget.elements.searchQuery.value.trim();
 
   if (newsApiService.searchQuery === '') {
@@ -45,44 +34,21 @@ async function onSearch(e) {
   }
   const data = await newsApiService
     .fetchAll()
-    .then(data => {
-      Notiflix.Notify.info(`Hooray! We found ${data.totalHits} images.`, {
+    .then(({ totalHits, hits }) => {
+      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`, {
         timeout: 2000,
       });
       newsApiService.resetPage();
       newsApiService.incrementPage();
       resetGallery();
-      renderGallery(data.hits);
+      renderGallery(hits);
       new SimpleLightbox('.gallery a').refresh();
-      // lodeBtn.className = 'load-more';
     })
     .catch(error => {
       console.log(error);
     });
   form.reset();
 }
-
-// function lodeMore() {
-//   newsApiService
-//     .fetchAll()
-//     .then(data => {
-//       renderGallery(data.hits);
-//       new SimpleLightbox('.gallery a').refresh();
-//     })
-//     .catch(error => {
-//       console.log(error);
-//     });
-//   newsApiService.incrementPage();
-
-// const { height: cardHeight } = document
-//   .querySelector('.gallery')
-//   .firstElementChild.getBoundingClientRect();
-
-// window.scrollBy({
-//   top: cardHeight * 2,
-//   behavior: 'smooth',
-// });
-// }
 
 function renderGallery(elements) {
   const markup = elements
@@ -128,8 +94,8 @@ function checkPosition() {
   if (position >= threshold) {
     newsApiService
       .fetchAll()
-      .then(data => {
-        renderGallery(data.hits);
+      .then(({ hits }) => {
+        renderGallery(hits);
         new SimpleLightbox('.gallery a').refresh();
       })
       .catch(error => {
