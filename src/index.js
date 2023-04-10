@@ -1,42 +1,45 @@
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { NewsApiService } from './partials/fetch';
 import throttle from 'lodash.throttle';
+import { NewsApiService } from './partials/fetch';
 
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
 const newsApiService = new NewsApiService();
+const message = Notiflix.Notify;
 
 form.addEventListener('submit', onSearch);
 window.addEventListener(
   'scroll',
   throttle(e => {
     checkPosition();
-  }, 250)
+  }, 1000)
 );
 window.addEventListener(
   'resize',
   throttle(e => {
     checkPosition();
-  }, 250)
+  }, 1000)
 );
 
 async function onSearch(e) {
   e.preventDefault();
-  newsApiService.query = e.currentTarget.elements.searchQuery.value.trim();
+  const input = e.currentTarget;
+  newsApiService.query = input.elements.searchQuery.value.trim();
 
-  if (newsApiService.searchQuery === '') {
-    Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
-    return;
-  }
   const data = await newsApiService
     .fetchAll()
     .then(({ totalHits, hits }) => {
-      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`, {
-        timeout: 2000,
+      if (newsApiService.searchQuery === '')
+        return message.failure(
+          'Sorry, there are no images matching your search query. Please try again.',
+          {
+            timeout: 1000,
+          }
+        );
+      message.info(`Hooray! We found ${totalHits} images.`, {
+        timeout: 1000,
       });
       newsApiService.resetPage();
       newsApiService.incrementPage();
@@ -46,49 +49,14 @@ async function onSearch(e) {
     })
     .catch(error => {
       console.log(error);
-    });
-  form.reset();
-}
-
-function renderGallery(elements) {
-  const markup = elements
-    .map(element => {
-      return `<a href="${element.largeImageURL}">
-      <div class="photo-card">
-        <img src="${element.webformatURL}" alt="${element.tags}" loading="lazy"/>
-      <div class="info">
-        <p class="info-item">
-          <b>Likes</b>
-          <span class="span" > ${element.likes}</span>
-        </p>
-        <p class="info-item">
-          <b>Views</b>
-          <span class="span"> ${element.views}</span>
-        </p>
-        <p class="info-item">
-          <b>Comments</b>
-          <span class="span"> ${element.comments}</span>
-        </p>
-        <p class="info-item">
-          <b>Downloads</b>
-          <span class="span"> ${element.comments}</span>
-        </p>
-      </div>
-    </div>
-    </a>`;
     })
-    .join('');
-  gallery.insertAdjacentHTML('beforeend', markup);
+    .finally(() => form.reset());
 }
-function resetGallery() {
-  gallery.innerHTML = '';
-}
-
-function checkPosition() {
+const checkPosition = () => {
   const height = document.body.offsetHeight;
   const screenHeight = window.innerHeight;
   const scrolled = window.scrollY;
-  const threshold = height - screenHeight / 4;
+  const threshold = height - screenHeight / 5;
   const position = scrolled + screenHeight;
 
   if (position >= threshold) {
@@ -100,7 +68,49 @@ function checkPosition() {
       })
       .catch(error => {
         console.log(error);
-      });
-    newsApiService.incrementPage();
+      })
+      .finally(() => newsApiService.incrementPage());
   }
-}
+};
+
+const renderGallery = elements => {
+  const markup = elements
+    .map(
+      ({
+        largeImageURL,
+        webformatURL,
+        tags,
+        likes,
+        views,
+        comments,
+        downloads,
+      }) => {
+        return `<a href="${largeImageURL}">
+      <div class="photo-card">
+        <img src="${webformatURL}" alt="${tags}" loading="lazy"/>
+      <div class="info">
+        <p class="info-item">
+          <b>Likes</b>
+          <span class="span" > ${likes}</span>
+        </p>
+        <p class="info-item">
+          <b>Views</b>
+          <span class="span"> ${views}</span>
+        </p>
+        <p class="info-item">
+          <b>Comments</b>
+          <span class="span"> ${comments}</span>
+        </p>
+        <p class="info-item">
+          <b>Downloads</b>
+          <span class="span"> ${downloads}</span>
+        </p>
+      </div>
+    </div>
+    </a>`;
+      }
+    )
+    .join('');
+  gallery.insertAdjacentHTML('beforeend', markup);
+};
+const resetGallery = () => (gallery.innerHTML = '');

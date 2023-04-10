@@ -14,15 +14,7 @@ export class NewsApiService {
       .get(
         `${BASE_URL}/?key=${KEY_API}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.page}`
       )
-      .then(response => {
-        if (response.data.total === 0) {
-          Notiflix.Notify.failure(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-        }
-        // this.incrementPage();
-        return response.data;
-      });
+      .then(({ data }) => data);
     return dataObj;
   }
   incrementPage() {
