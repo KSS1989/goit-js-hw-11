@@ -3,6 +3,7 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import throttle from 'lodash.throttle';
 import { NewsApiService } from './partials/fetch';
+import hitsTpl from './templates/hits.hbs';
 
 const form = document.getElementById('search-form');
 const gallery = document.querySelector('.gallery');
@@ -44,7 +45,7 @@ async function onSearch(e) {
       newsApiService.resetPage();
       newsApiService.incrementPage();
       resetGallery();
-      renderGallery(hits);
+      appendHitsTpl(hits);
       new SimpleLightbox('.gallery a').refresh();
     })
     .catch(error => {
@@ -52,6 +53,7 @@ async function onSearch(e) {
     })
     .finally(() => form.reset());
 }
+
 const checkPosition = () => {
   const height = document.body.offsetHeight;
   const screenHeight = window.innerHeight;
@@ -63,7 +65,7 @@ const checkPosition = () => {
     newsApiService
       .fetchAll()
       .then(({ hits }) => {
-        renderGallery(hits);
+        appendHitsTpl(hits);
         new SimpleLightbox('.gallery a').refresh();
       })
       .catch(error => {
@@ -73,44 +75,8 @@ const checkPosition = () => {
   }
 };
 
-const renderGallery = elements => {
-  const markup = elements
-    .map(
-      ({
-        largeImageURL,
-        webformatURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => {
-        return `<a href="${largeImageURL}">
-      <div class="photo-card">
-        <img src="${webformatURL}" alt="${tags}" loading="lazy"/>
-      <div class="info">
-        <p class="info-item">
-          <b>Likes</b>
-          <span class="span" > ${likes}</span>
-        </p>
-        <p class="info-item">
-          <b>Views</b>
-          <span class="span"> ${views}</span>
-        </p>
-        <p class="info-item">
-          <b>Comments</b>
-          <span class="span"> ${comments}</span>
-        </p>
-        <p class="info-item">
-          <b>Downloads</b>
-          <span class="span"> ${downloads}</span>
-        </p>
-      </div>
-    </div>
-    </a>`;
-      }
-    )
-    .join('');
-  gallery.insertAdjacentHTML('beforeend', markup);
+const appendHitsTpl = e => {
+  gallery.insertAdjacentHTML('beforeend', hitsTpl(e));
 };
+
 const resetGallery = () => (gallery.innerHTML = '');
