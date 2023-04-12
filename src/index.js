@@ -17,12 +17,6 @@ window.addEventListener(
     checkPosition();
   }, 1000)
 );
-window.addEventListener(
-  'resize',
-  throttle(e => {
-    checkPosition();
-  }, 1000)
-);
 
 async function onSearch(e) {
   e.preventDefault();
@@ -58,7 +52,7 @@ const checkPosition = () => {
   const height = document.body.offsetHeight;
   const screenHeight = window.innerHeight;
   const scrolled = window.scrollY;
-  const threshold = height - screenHeight / 5;
+  const threshold = height - screenHeight / 4;
   const position = scrolled + screenHeight;
 
   if (position >= threshold) {

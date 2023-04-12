@@ -7,12 +7,17 @@ export class NewsApiService {
   constructor() {
     this.searchQuery = '';
     this.page = 1;
+    this.per_page = 40;
   }
 
   async fetchAll() {
     const dataObj = await axios
       .get(
-        `${BASE_URL}/?key=${KEY_API}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.page}`
+        `${BASE_URL}/?key=${KEY_API}&q=${
+          this.searchQuery
+        }&image_type=photo&orientation=horizontal&safesearch=true&per_page=${(this.per_page = 40)}&page=${
+          this.page
+        }`
       )
       .then(({ data }) => data);
     return dataObj;
